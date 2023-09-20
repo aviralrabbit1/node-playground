@@ -1,4 +1,7 @@
 const express = require('express');
+const cluster = require('cluster');
+
+
 
 const app = express();
 
@@ -14,14 +17,32 @@ function delay(duration) { // simulating extreme worstcase of blocking behaviour
 app.get('/', (req, res) => {
     // JSON.stringify({}) => "{}" // Blocking function
     // JSON.parse("{}") => {}
-    res.send('Performance example');
+    res.send(`Performance example ${process.pid} `);
 });
 
 app.get('/timer', (req, res) => {
     // delay the response
-    delay(9000);
-    res.send('Delayed');
+    delay(5000);
+    res.send(`Delayed  ${process.pid}`);
 })
 
-app.listen(3000);
+console.log('running server.js');
+if(cluster.isMaster){
+    // only exectured first time when server.js executes
+    console.log("Master process has started...");
+    cluster.fork();
+    cluster.fork();
+} else {
+    console.log('Worker process has started');
+    app.listen(3000);
+}
 
+
+// js and node don't follow multi threaded approach
+// build and run multiple node processes side-by-side
+// Node cluster module create copies of node process that run side by side
+
+// node server.js -> master process
+//  we run fork, master is copied as worker processes(take http requests) attached to single master
+// differentiated by isMaster flag
+// round - robin approach
