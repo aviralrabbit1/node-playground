@@ -1,7 +1,6 @@
 const express = require('express');
 const cluster = require('cluster');
-
-
+const os = require('os'); // help us create right number of worker processes
 
 const app = express();
 
@@ -30,8 +29,13 @@ console.log('running server.js');
 if(cluster.isMaster){
     // only exectured first time when server.js executes
     console.log("Master process has started...");
-    cluster.fork();
-    cluster.fork();
+
+    // limit to the number of processess, to run efficiently, needs separate procesors
+    const NUM_WORKERS = os.cpus().length;
+    console.log(NUM_WORKERS + " = NUM_WORKERS");
+    for(let i=0; i < NUM_WORKERS; i++){
+        cluster.fork();  // Upto n requests at a time
+    }
 } else {
     console.log('Worker process has started');
     app.listen(3000);
@@ -45,4 +49,9 @@ if(cluster.isMaster){
 // node server.js -> master process
 //  we run fork, master is copied as worker processes(take http requests) attached to single master
 // differentiated by isMaster flag
-// round - robin approach
+// round - robin approach - each request sent to next subsequent servers one after another, 
+// then repeat from first
+// randomized static, random assignment of request to random server, by permutation
+
+// Load balancing - process of distributing set of tasks over a set of resources for improved efficiency
+// used for horzontal scaling, adding more servers/node processes
