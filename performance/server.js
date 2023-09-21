@@ -22,7 +22,10 @@ app.get('/', (req, res) => {
 app.get('/timer', (req, res) => {
     // delay the response
     delay(5000);
-    res.send(`Delayed  ${process.pid}`);
+    // res.send(`Delayed  ${process.pid}`);
+    res.send(`Delayed again  ${process.pid}`); 
+    // pm2 reload server -> zero downtime restart, reloads one by one
+    // so that atleast one or two processes are always running
 })
 
 console.log('running server.js');
@@ -69,3 +72,6 @@ app.listen(3000);
 // pm2 logs
 // pm2 restart server
 // pm2 logs --lines 200 -> for last 200 lines
+// pm2 start server.js -l logs logs.txt -i -> output logs in a file
+// pm2 show {id}
+// pm2 monit -> terminal monitoring 
